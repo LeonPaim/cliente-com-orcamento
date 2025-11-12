@@ -3,63 +3,46 @@ package com.finan.orcamento.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "usuario")
-public class UsuarioModel implements Serializable {
+@Table(name = "cliente")
+public class ClienteModel implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Nome do usuário é obrigatório")
-    @Column(name = "nome_usuario", length = 100)
-    private String nomeUsuario;
-
-    @NotBlank(message = "RG é obrigatório")
-    @Column(name = "rg", length = 20, unique = true)
-    private String rg;
+    @NotBlank(message = "Nome do cliente é obrigatório")
+    @Column(name = "nome", length = 100)
+    private String nome;
 
     @NotBlank(message = "CPF é obrigatório")
     @Column(name = "cpf", length = 20, unique = true)
     private String cpf;
 
-    @NotBlank(message = "Nome da mãe é obrigatório")
-    @Column(name = "nome_mae", length = 100)
-    private String nomeMae;
-
     @JsonIgnore
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrcamentoModel> orcamentos = new ArrayList<>();
 
-    public UsuarioModel() {}
+    public ClienteModel() {}
 
-    public UsuarioModel(String nomeUsuario, String rg, String cpf, String nomeMae) {
-        this.nomeUsuario = nomeUsuario;
-        this.rg = rg;
+    public ClienteModel(String nome, String cpf) {
+        this.nome = nome;
         this.cpf = cpf;
-        this.nomeMae = nomeMae;
     }
 
     // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getNomeUsuario() { return nomeUsuario; }
-    public void setNomeUsuario(String nomeUsuario) { this.nomeUsuario = nomeUsuario; }
-
-    public String getRg() { return rg; }
-    public void setRg(String rg) { this.rg = rg; }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
     public String getCpf() { return cpf; }
     public void setCpf(String cpf) { this.cpf = cpf; }
-
-    public String getNomeMae() { return nomeMae; }
-    public void setNomeMae(String nomeMae) { this.nomeMae = nomeMae; }
 
     public List<OrcamentoModel> getOrcamentos() { return orcamentos; }
     public void setOrcamentos(List<OrcamentoModel> orcamentos) { this.orcamentos = orcamentos; }
@@ -68,7 +51,7 @@ public class UsuarioModel implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UsuarioModel that = (UsuarioModel) o;
+        ClienteModel that = (ClienteModel) o;
         return Objects.equals(id, that.id);
     }
 
@@ -79,9 +62,9 @@ public class UsuarioModel implements Serializable {
 
     @Override
     public String toString() {
-        return "UsuarioModel{" +
+        return "ClienteModel{" +
                 "id=" + id +
-                ", nomeUsuario='" + nomeUsuario + '\'' +
+                ", nome='" + nome + '\'' +
                 ", cpf='" + cpf + '\'' +
                 '}';
     }

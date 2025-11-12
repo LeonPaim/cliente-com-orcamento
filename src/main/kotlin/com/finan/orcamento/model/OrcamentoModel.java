@@ -2,93 +2,86 @@ package com.finan.orcamento.model;
 
 import com.finan.orcamento.model.enums.IcmsEstados;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
 
 @Entity
-@Table(name="orcamento")
+@Table(name = "orcamento")
 public class OrcamentoModel implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "icms_estados")
     private IcmsEstados icmsEstados;
 
-    @NotNull
-    @Column(name="valor_orcamento")
+    @Column(name = "valor_orcamento", precision = 10, scale = 2)
     private BigDecimal valorOrcamento;
 
-    @Column(name="valor_icms")
+    @Column(name = "valor_icms", precision = 10, scale = 2)
     private BigDecimal valorICMS;
 
-    @ManyToOne
-    @JoinColumn(name="usuario_id", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
     private UsuarioModel usuario;
 
-    public void calcularIcms() {
-        this.valorICMS = this.icmsEstados.getStrategy().calcular(this.valorOrcamento);
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id")
+    private ClienteModel cliente;
 
-    public OrcamentoModel(){}
+    @Column(name = "descricao", length = 255)
+    private String descricao;
 
-    public OrcamentoModel(Long id, IcmsEstados icmsEstados, @NotNull BigDecimal valorOrcamento, BigDecimal valorICMS, UsuarioModel usuario) {
-        this.id = id;
-        this.icmsEstados = icmsEstados;
+    public OrcamentoModel() {}
+
+    public OrcamentoModel(BigDecimal valorOrcamento, IcmsEstados icmsEstados, UsuarioModel usuario, ClienteModel cliente, String descricao) {
         this.valorOrcamento = valorOrcamento;
-        this.valorICMS = valorICMS;
+        this.icmsEstados = icmsEstados;
         this.usuario = usuario;
+        this.cliente = cliente;
+        this.descricao = descricao;
+        calcularIcms();
     }
 
-    public Long getId() {
-        return id;
+    public void calcularIcms() {
+        if (this.icmsEstados != null && this.valorOrcamento != null) {
+            this.valorICMS = this.icmsEstados.getStrategy().calcular(this.valorOrcamento);
+        }
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    // Getters e Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public IcmsEstados getIcmsEstados() {
-        return icmsEstados;
-    }
-
+    public IcmsEstados getIcmsEstados() { return icmsEstados; }
     public void setIcmsEstados(IcmsEstados icmsEstados) {
         this.icmsEstados = icmsEstados;
+        calcularIcms();
     }
 
-    @NotNull
-    public BigDecimal getValorOrcamento() {
-        return valorOrcamento;
-    }
-
-    public void setValorOrcamento(@NotNull BigDecimal valorOrcamento) {
+    public BigDecimal getValorOrcamento() { return valorOrcamento; }
+    public void setValorOrcamento(BigDecimal valorOrcamento) {
         this.valorOrcamento = valorOrcamento;
+        calcularIcms();
     }
 
-    public BigDecimal getValorICMS() {
-        return valorICMS;
-    }
+    public BigDecimal getValorICMS() { return valorICMS; }
+    public void setValorICMS(BigDecimal valorICMS) { this.valorICMS = valorICMS; }
 
-    public void setValorICMS(BigDecimal valorICMS) {
-        this.valorICMS = valorICMS;
-    }
+    public UsuarioModel getUsuario() { return usuario; }
+    public void setUsuario(UsuarioModel usuario) { this.usuario = usuario; }
 
-    public UsuarioModel getUsuario() {
-        return usuario;
-    }
+    public ClienteModel getCliente() { return cliente; }
+    public void setCliente(ClienteModel cliente) { this.cliente = cliente; }
 
-    public void setUsuario(UsuarioModel usuario) {
-        this.usuario = usuario;
-    }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         OrcamentoModel that = (OrcamentoModel) o;
         return Objects.equals(id, that.id);
@@ -97,5 +90,18 @@ public class OrcamentoModel implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return "OrcamentoModel{" +
+                "id=" + id +
+                ", valorOrcamento=" + valorOrcamento +
+                ", valorICMS=" + valorICMS +
+                ", icmsEstados=" + icmsEstados +
+                ", descricao='" + descricao + '\'' +
+                ", usuario=" + (usuario != null ? usuario.getNomeUsuario() : "null") +
+                ", cliente=" + (cliente != null ? cliente.getNome() : "null") +
+                '}';
     }
 }
