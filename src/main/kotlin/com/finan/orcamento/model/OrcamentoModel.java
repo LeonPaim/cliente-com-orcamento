@@ -4,6 +4,8 @@ import com.finan.orcamento.model.enums.IcmsEstados;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -34,6 +36,9 @@ public class OrcamentoModel implements Serializable {
     @Column(name = "descricao", length = 255)
     private String descricao;
 
+    @Column(name = "data_criacao")
+    private LocalDateTime dataCriacao;
+
     public OrcamentoModel() {}
 
     public OrcamentoModel(BigDecimal valorOrcamento, IcmsEstados icmsEstados, UsuarioModel usuario, ClienteModel cliente, String descricao) {
@@ -42,7 +47,15 @@ public class OrcamentoModel implements Serializable {
         this.usuario = usuario;
         this.cliente = cliente;
         this.descricao = descricao;
+        this.dataCriacao = LocalDateTime.now();
         calcularIcms();
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.dataCriacao == null) {
+            this.dataCriacao = LocalDateTime.now();
+        }
     }
 
     public void calcularIcms() {
@@ -79,6 +92,9 @@ public class OrcamentoModel implements Serializable {
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
 
+    public LocalDateTime getDataCriacao() { return dataCriacao; }
+    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -100,6 +116,7 @@ public class OrcamentoModel implements Serializable {
                 ", valorICMS=" + valorICMS +
                 ", icmsEstados=" + icmsEstados +
                 ", descricao='" + descricao + '\'' +
+                ", dataCriacao=" + dataCriacao +
                 ", usuario=" + (usuario != null ? usuario.getNomeUsuario() : "null") +
                 ", cliente=" + (cliente != null ? cliente.getNome() : "null") +
                 '}';

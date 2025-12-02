@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório de Clientes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+        background: linear-gradient(to right, #106eea, #198ba2);
+        min-height: 100vh;
+        padding: 20px;
+    }
+    .container {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .table th {
+        background-color: #f8f9fa;
+        border-top: none;
+    }
+    .btn-relatorio {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+    }
+    .btn-relatorio:hover {
+        background: linear-gradient(45deg, #5a6fd8, #6a4190);
+        color: white;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1 class="text-center mb-4">📊 Relatório de Clientes</h1>
+
+  <!-- Mensagens -->
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <!-- Navegação -->
+  <div class="mb-4">
+    <a th:href="@{/clientes}" class="btn btn-info">👥 Cadastro de Clientes</a>
+    <a th:href="@{/usuarios}" class="btn btn-secondary">👤 Usuários</a>
+    <a th:href="@{/orcamentos}" class="btn btn-primary">💰 Orçamentos</a>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>🔍 Filtros do Relatório</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/clientes/relatorio/gerar}" method="post">
+        <div class="row">
+          <!-- Filtro por Cliente -->
+          <div class="col-md-4">
+            <label class="form-label">Cliente:</label>
+            <select name="clienteId" class="form-select">
+              <option value="">Todos os Clientes</option>
+              <option th:each="cliente : ${clientes}"
+                      th:value="${cliente.id}"
+                      th:text="${cliente.nome + ' - ' + cliente.cpf}"
+                      th:selected="${filtroClienteId == cliente.id}">
+              </option>
+            </select>
+          </div>
+
+          <!-- Filtro por Valor -->
+          <div class="col-md-4">
+            <label class="form-label">Valor Mínimo:</label>
+            <input type="number" name="valorMin" class="form-control"
+                   step="0.01" min="0" th:value="${filtroValorMin}"
+                   placeholder="Ex: 100.00">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Valor Máximo:</label>
+            <input type="number" name="valorMax" class="form-control"
+                   step="0.01" min="0" th:value="${filtroValorMax}"
+                   placeholder="Ex: 1000.00">
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <!-- Filtro por Data -->
+          <div class="col-md-6">
+            <label class="form-label">Data Início:</label>
+            <input type="date" name="dataInicio" class="form-control"
+                   th:value="${filtroDataInicio}">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Data Fim:</label>
+            <input type="date" name="dataFim" class="form-control"
+                   th:value="${filtroDataFim}">
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button type="submit" class="btn btn-relatorio">📊 Gerar Relatório</button>
+          <a th:href="@{/clientes/relatorio}" class="btn btn-outline-secondary">🔄 Limpar Filtros</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Resultados do Relatório -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5>📋 Resultados do Relatório</h5>
+      <span class="badge bg-primary" th:text="'Total: ' + ${relatorioClientes.size()}"></span>
+    </div>
+    <div class="card-body">
+      <div th:if="${relatorioClientes != null && relatorioClientes.empty}"
+           class="text-center text-muted py-4">
+        📝 Nenhum resultado encontrado com os filtros aplicados
+      </div>
+
+      <table th:if="${relatorioClientes != null && !relatorioClientes.empty}"
+             class="table table-striped table-hover">
+        <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>CPF</th>
+          <th>Qtd. Orçamentos</th>
+          <th>Total Gasto</th>
+          <th>Valor Médio</th>
+          <th>Último Orçamento</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="relatorio : ${relatorioClientes}">
+          <td th:text="${relatorio.clienteNome}"></td>
+          <td th:text="${relatorio.clienteCpf}"></td>
+          <td>
+            <span class="badge bg-info" th:text="${relatorio.quantidadeOrcamentos}"></span>
+          </td>
+          <td>
+            <strong th:text="'R$ ' + ${#numbers.formatDecimal(relatorio.totalGasto, 1, 2)}"></strong>
+          </td>
+          <td th:text="'R$ ' + ${#numbers.formatDecimal(relatorio.valorMedio, 1, 2)}"></td>
+          <td>
+            <small th:text="${#temporals.format(relatorio.dataUltimoOrcamento, 'dd/MM/yyyy HH:mm')}"></small>
+          </td>
+        </tr>
+        </tbody>
+        <tfoot th:if="${relatorioClientes != null && !relatorioClientes.empty}">
+        <tr class="table-primary">
+          <td><strong>Total Geral</strong></td>
+          <td></td>
+          <td>
+            <strong th:text="${#aggregates.sum(relatorioClientes.![quantidadeOrcamentos])}"></strong>
+          </td>
+          <td>
+            <strong th:text="'R$ ' + ${#numbers.formatDecimal(#aggregates.sum(relatorioClientes.![totalGasto]), 1, 2)}"></strong>
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
